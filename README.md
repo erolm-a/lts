@@ -37,7 +37,11 @@ The latter command should return a parsable tree which can then be parsed and co
 Milestone:
 
 [ ] Finish the LTS implementation of the tree function.
+
 [ ] Implement a parser
+
 [ ] Improve the discussion of the LTS
+
 [ ] Add labeling to transitions.
+
 [ ] ...
