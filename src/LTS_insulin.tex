@@ -1,0 +1,93 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{LTS - insulin scenario}
+\author{Enrico Trombetta }
+\date{March 2019}
+
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\begin{document}
+
+\maketitle
+
+\section{Informal description}
+The problem involves two agents, Hal and Carla. Hal, diabetic, lost his insulin by accident and urgently needs to take some to stay alive. He doesn't have enough time to buy a new supply, but he knows that Carla keeps some insulin at home, very close by. Hal doesn't have permission to access Carla's property, besides Hal knows that Carla is diabetic too and he might be putting her life in danger by taking her supply. On the other hand, Hal believes that Carla may be able to buy some insulin later on.
+
+\section{Formal description}
+We will consider only one of the two agents, Hal.
+
+For the sake of simplicity, let $A$ be the first agent (Hal), $B$ the second agent (Carla).
+
+In order to describe the LTS we will firstly introduce a couple states/rules and some labelled actions.
+
+Let $s \in S$ be a state. Since we are working with predicates concerning the two agents at the same time, we will consider the atomic propositions $L(s)$ to be an ordered pair of sets of propositions, i.e. $L(s) = (P_A, P_B) = (\{p_{1}, p_{2}, ...\}, \{q_{1}, q_{2},... \}, )$ where $P_X$ denotes a set of prepositions regarding the agent $X$.
+
+Now, let us define a couple useful propositions.
+
+\begin{itemize}
+    \item Let $hasSupply$ be the proposition "the agent has the insulin supply".
+    \item Let $canBuy$ be the proposition "the agent can buy the insulin supply later on".
+    \item Let $alive$ be the proposition "the agent is alive". This is our top priority.
+\end{itemize}
+
+The initial state can be described described by those three properties.
+
+\begin{equation*}
+    L(s_0) = (\{alive\}, \{alive, hasSupply, canBuy\})
+\end{equation*}
+
+To be fair, $A$ \textit{believes} $B$ can buy another insulin later on. We could remove the $canBuy$ proposition and get:
+
+\begin{equation*}
+    L(s_0') = (\{alive\}, \{alive, hasSupply\})
+\end{equation*}
+
+As a further example, if $A$ did not want to violate B's property but does not find another insulin supply he would die, so:
+
+\begin{equation*}
+    L(s_{ADies}) = (\{\}, \{alive, hasSupply, canBuy\})
+\end{equation*}
+
+Now we will list a sequence of possible \textit{actions} i.e. transitions that will transform states.
+
+\begin{itemize}
+    \item $ASteals$ represents the action "$A$ steals the insuline from B". Formally:
+    \begin{equation}
+        Post((P_A, P_B), Asteals) = \{s' | hasSupply \in P_A' \wedge hasSupply \not \in P_B'\} 
+    \end{equation}
+    where $P_A, P_B, P_A', P_B'$ represent the atomic propositions of the state $s$ and $s'$ in the transition $s ASteals b$.
+    \item $XBuys$ represents the action "$X$ buys another insulin supply". To be possible $canBuy \in P_X$ and the result will be that $has \in P_X'$
+    \item $XDies$ is pretty self-explanatory and can happen only if $hasSupply \not \in P_X \wedge canBuy \not \in P_X$.
+\end{itemize}
+
+Let us see some possible execution paths.
+
+\begin{enumerate}
+    \item $A$ stoically accepts his fate and dies.
+        \begin{equation*}
+            (\{alive\}, \{alive, hasSupply, canBuy\}) \, ADies \, (\{\}, \{alive, hasSupply, canBuy\})
+        \end{equation*}
+    \item $A$ steals from $B$ but $B$ couldn't buy a new insulin supply that day and dies.
+        \begin{equation*}
+        \begin{split}
+            (\{alive\}, \{alive, hasSupply\}) \, &ASteals \, (\{alive, hasSupply\}, \{alive\}) \\
+                                                 & BDies \, (\{alive, hasSupply\}, \{\})
+        \end{split}
+        \end{equation*}
+    \item $A$ steals from $B$, $B$ fetches another supply.
+    \begin{equation*}
+        \begin{split}
+            (\{alive\}, \{alive, hasSupply, canBuy\}) & ASteals (\{alive, hasSupply\}, \{alive, canBuy\}) \\
+            & BBuys (\{alive, hasSupply\}, \{alive, hasSupply\})
+        \end{split}
+    \end{equation*}
+\end{enumerate}
+
+There are many other variations that could be easily included in our simple LTS model. For example, had the transitions not been deterministic (e.g. the canBuy attribute in A or B or both could be toggled in any moment) it would have shown interesting paths.
+
+\section{Defining a moral strategy}
+... or stuff like that, coming soon!
+\end{document}
