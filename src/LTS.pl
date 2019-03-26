@@ -35,7 +35,8 @@ subset_nondet([_|Tail], NTail):-
 % check (or generate) a set of predicates
 prop_set(Set):-
     is_set(Set),
-    maplist(prop, Set).
+    maplist(prop, Set),
+    sort(Set, Set).
 
 % the basic state in a LTS
 lts_state(HalState, CarlaState):-
@@ -87,12 +88,13 @@ exec_action('CarlaDies', OldState, NewState):-
 
 exec_action('CarlaBuysSupply', OldState, NewState):-
     OldState = lts_state(HalState, OldCarlaState),
-    select(canBuy, OldCarlaState, hasSupply, NewCarlaState),
+    delete(OldCarlaState, canBuy, MiddleCarlaState),
+    merge(MiddleCarlaState, [hasSupply], NewCarlaState),
     NewState = lts_state(HalState, NewCarlaState).
 
 exec_action('HalSteals', OldState, NewState):-
     OldState = lts_state(OldHalState, OldCarlaState),
-    append(OldHalState, [hasSupply], NewHalState),
+    merge(OldHalState, [hasSupply], NewHalState),
     delete(OldCarlaState, hasSupply, NewCarlaState),
     NewState = lts_state(NewHalState, NewCarlaState).
 
@@ -116,23 +118,5 @@ path(CurrentState, [CurrentState]):-
 path(CurrentState, [CurrentState, Action|PathTrail]):-
     perform_action(Action, CurrentState, NewState),
     path(NewState, PathTrail).
-
-% In general, use tail-call recursion. The third parameter contains the list of actions
-% to ignore, this way we can iterate over different actions.
-tree(EndingState, [], _):-
-    not(evolvable_state(EndingState)).
-
-tree(CurrentState, [Tree|Trees], OldActions):-
-    action(Action),
-    not(member(Action, OldActions)),
-    perform_action(Action, CurrentState, NewState),
-    Tree = [Action, tree(NewState, _, [])],
-    append(OldActions, [Action], NewActions),
-    tree(CurrentState, Trees, NewActions).
-
-tree(_, [], _).
-
-tree(CurrentState, Tree):-
-    tree(CurrentState, Tree, []).
 
 initial_state(lts_state([isAlive], [canBuy, hasSupply, isAlive])).
