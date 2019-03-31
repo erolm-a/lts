@@ -26,13 +26,12 @@ Path = ...
 [And a bunch of alternative paths]
 true.
 
-?- initial_state(InitialState), tree(InitialState, Tree).
+?- initial_state(InitialState), export_tree("tree.csv", InitialState).
 InitialState = ...
-Tree = ...
 true.
 ```
 
-The latter command should return a parsable tree which can then be parsed and converted in a TikZ image.
+The latter command should write down a csv list of every path. The format is documented in `src/LTS.pl`, but should be (hopefully) pretty straightforward.
 
 Milestone:
 

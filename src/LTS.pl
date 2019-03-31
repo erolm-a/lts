@@ -11,7 +11,7 @@
 
 % By now, we will implement the "insuline" scenario.
 
-%use_module(library(lists)).
+% use_module(library(csv)).
 
 % Do I dispose of an insuline supply
 prop(hasSupply).
@@ -19,17 +19,6 @@ prop(hasSupply).
 prop(isAlive).
 % can I buy another supply?
 prop(canBuy).
-
-% subset_nondet(+Set1, -Set2) is nondet
-% like subset/2 but is not deterministic
-subset_nondet([], []).
-subset_nondet([E|Tail], [E|NTail]):-
-    subset_nondet(Tail, NTail).
-subset_nondet([_|Tail], NTail):-
-    subset_nondet(Tail, NTail).
-
-% prop_list(@List) is nondet
-% check (or generate) a list of predicates
 
 % prop_set(@Set) is nondet
 % check (or generate) a set of predicates
@@ -53,6 +42,7 @@ action('CarlaDies').
 % Hal must still be alive before dying
 precondition('HalDies', lts_state(HalState, _)):-
     member(isAlive, HalState),
+    not(member(canBuy, HalState)),
     not(member(hasSupply, HalState)).
 
 % Similarly for Carla
@@ -115,8 +105,49 @@ evolvable_state(lts_state(HalState, CarlaState)):-
 path(CurrentState, [CurrentState]):-
     not(evolvable_state(CurrentState)).
 
-path(CurrentState, [CurrentState, Action|PathTrail]):-
+path(CurrentState, [CurrentState, action(Action)|PathTrail]):-
     perform_action(Action, CurrentState, NewState),
     path(NewState, PathTrail).
+
+% convert a LTS path into a string.
+% The idea is that a path should be expressable in csv format - even though the
+% field number is not guaranteed to be the same.
+%
+% The serialization of a single state lts_state([P1, P2, ... Pi], [Q1, Q2, ..., Qj]) is:
+% "P1,P2,...,Pi;Q1,Q2,...Qj" where ';' is a separator between the first and the second set.
+% Nothing prevents the state to start or end with ; or even contain a single ; between
+% the quotes.
+% the serialization of an action is the string version of the atom representing an action,
+% without quotes.
+serialize(lts_state(A, B), Output):-
+    !,
+    atomics_to_string(A, ',', Serialized1_),
+    string_concat(Serialized1_, ';', Serialized1),
+    atomics_to_string(B, ',', Serialized2),
+    string_concat('"', Serialized1, Prefix),
+    string_concat(Serialized2, '"', Suffix),
+    string_concat(Prefix, Suffix, Output).
+
+serialize(action(Action), Output):-
+    atom_string(Action, Output).
+
+serialize([X], Output):-
+    serialize(X, Output), !.
+
+serialize([Head|Rest], Output):-
+    serialize(Head, Out1_), !,
+    string_concat(Out1_, ',', Out1),
+    serialize(Rest, Out2), !,
+    string_concat(Out1, Out2, Output).
+
+% Serialize every possible LTS that are rooted by a given seed and writes down the results in a file.
+export_tree(FileName, Seed):-
+    open(FileName, write, OutStream),
+    forall(path(Seed, Path), (
+            serialize(Path, Output),
+            write(OutStream, Output), nl(OutStream)
+        )
+    ),
+    close(OutStream).
 
 initial_state(lts_state([isAlive], [canBuy, hasSupply, isAlive])).
