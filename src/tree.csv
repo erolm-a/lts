@@ -1,0 +1,2 @@
+"isAlive;canBuy,hasSupply,isAlive",HalSteals,"hasSupply,isAlive;canBuy,isAlive",CarlaBuysSupply,"hasSupply,isAlive;hasSupply,isAlive"
+"isAlive;canBuy,hasSupply,isAlive",HalDies,";canBuy,hasSupply,isAlive"
