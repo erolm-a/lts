@@ -32,49 +32,61 @@ precondition_(compensateH, State):-
         \+ check_property_of_agent("Carla", State, hasMoney)
     ).
 
-/*
-perform_action(State, doNothingH, State).
-perform_action(State, doNothingC, State).
+% transition functions are defined in the following manner:
+%
+% transitate_(State, joint_action, NewState):- ...
 
-% Hal takes Carla's insulin
-perform_action(State, takeH, NewState):-
-    precondition(State, takeH), !,
-    toggle_property_to_agent("Hal", State, hasInsulin, NewState_), !,
-    toggle_property_to_agent("Carla", NewState_, hasInsulin, NewState), !.
-
-perform_action(State, compensateH, 
-*/
-
-
-transitate_(State, [doNothingH, doNothingC], NewState):-
+% when none of the two agents acts they might die
+transitate_(State, [doNothingH, doNothingC], NewState, Valutations):-
     % If one of the two does not have insulin, that person will die
+
+    ValutationTemp = [],
     agent_state("Hal", State, HalState),
     agent_state("Carla", State, CarlaState),
     (
         (member(isAlive, HalState), \+ member(hasInsulin, HalState)) ->
-            ord_del_element(HalState, isAlive, HalStatePrime) ; HalStatePrime = HalState
+            (
+                ord_del_element(HalState, isAlive, HalStatePrime),
+                demote(lifeHal, DemotedHalLife),
+                append(ValutationTemp, DemotedHalLife, ValuationTemp2)
+            ) ; (
+                HalStatePrime = HalState,
+                ValutationTemp2 = ValutationTemp
+            )
     ),
     (
         (member(isAlive, CarlaState), \+ member(hasInsulin, CarlaState)) ->
-            ord_del_element(CarlaState, isAlive, CarlaStatePrime) ; CarlaStatePrime = CarlaState
+            (
+                ord_del_element(CarlaState, isAlive, CarlaStatePrime),
+                demote(lifeCarla, DemotedCarlaLife),
+                append(ValutationTemp2, DemotedCarlaLife, Valutations)
+            ); (
+                CarlaStatePrime = CarlaState,
+                Valutations = ValutationsTemp2
+            )
     ),
     agent("Hal", IdHal),
     agent("Carla", IdCarla),
     substitute(State, IdHal, HalStatePrime, NewStatePrime),
     substitute(NewStatePrime, IdCarla, CarlaStatePrime, NewState).
 
-transitate_(State, [takeH, doNothingC], NewState):-
+transitate_(State, [takeH, doNothingC], NewState, []):-
     toggle_property("Hal", State, hasInsulin, NewStatePrime),
     toggle_property("Carla", NewStatePrime, hasInsulin, NewState).
 
-transitate_(State, [doNothingH, buyC], NewState):-
+transitate_(State, [doNothingH, buyC], NewState, [DemotedFreedomCarla]):-
     toggle_property("Carla", State, hasMoney, NewStatePrime),
-    toggle_property("Carla", NewStatePrime, hasInsulin, NewState).
+    toggle_property("Carla", NewStatePrime, hasInsulin, NewState),
+    demote(freedomCarla, DemotedFreedomCarla).
 
-transitate_(State, [compensateH, doNothingC], NewState):-
+transitate_(State, [compensateH, doNothingC], NewState, [DemotedFreedomHal]):-
     toggle_property("Hal", State, hasMoney, NewStatePrime),
 
     % If Carla lacks of insulin then provide it to her, otherwise she lacks the money
+    (
     \+ check_property_of_agent("Carla", NewStatePrime, hasInsulin) *->
         toggle_property("Carla", NewStatePrime, hasInsulin, NewState);
-        toggle_property("Carla", NewStatePrime, hasMoney, NewState).
+        toggle_property("Carla", NewStatePrime, hasMoney, NewState)
+    ),
+
+    demote(freedomHal, DemotedFreedomHal).

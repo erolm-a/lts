@@ -101,11 +101,11 @@ precondition(Action, State):-
     precondition_(Action, State).
 
 % A transition function gives a new state
-transitate(State, Joint, NewState):-
+transitate(State, Joint, NewState, Valuations):-
     state(State),
     joint_action(Joint),
     check_precondition_(State, Joint),
-    transitate_(State, Joint, NewState),
+    transitate_(State, Joint, NewState, Valuations),
     state(NewState).
 
 check_precondition_(_, []).
@@ -113,3 +113,12 @@ check_precondition_(State, [Action|T]):-
     precondition(Action, State),
     check_precondition_(State, T).
 
+
+% values should be defined in values.pl
+promote(Value, PromotedValue):-
+    value(Value),
+    atom_concat(Value, +, PromotedValue).
+
+demote(Value, PromotedValue):-
+    value(Value),
+    atom_concat(Value, -, PromotedValue).

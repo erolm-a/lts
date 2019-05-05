@@ -8,3 +8,4 @@
 :- [agents].
 :- [states].
 :- [actions].
+:- [values].
