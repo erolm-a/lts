@@ -22,6 +22,7 @@
 % DO NOT MODIFY THIS BY GROUNDING TERMS!!!
 % The files agents.pl, states.pl and actions.pl are made specifically for that.
 
+use(library(ordsets)).
 
 % Total number of agents.
 % The definition of agents is provided in agents.pl 
@@ -31,8 +32,7 @@ no_agents(N):-
 % Q is implemented via a list of sets of propositions.
 % The single propositions should be provided in states.pl .
 props(Propositions):-
-    sort(Propositions, Propositions),
-    is_set(Propositions),
+    is_ordset(Propositions),
     maplist(prop, Propositions).
 
 state(Proposition_List):-
@@ -44,15 +44,72 @@ state(Proposition_List):-
 % Given an agent and a state, return the subset of the propositions that concern that specific agent
 agent_state(Agent, State, AgentState):-
     agent(Agent, Id),
-    State = state(_),
+    state(State),
     nth0(Id, State, AgentState).
 
+% The actions, their preconditions and transitions should be grounded in actions.pl
+
+% A joint action is an ordered tuple of actions of the single agents. Each agent can execute
+% only one action at a time.
+%
 joint_action(Actions):-
     is_list(Actions),
     no_agents(N),
     length(Actions, N),
-    maplist(action, Actions).
+    check_joint_(Actions, 0).
 
-% Utility function for replacing single properties in agents
+check_joint_([H|T], Index):-
+    agent(Agent, Index),
+    action(H, Agent),
+    ( length(T, N),
+        N > 0 *-> (
+            IndexIncr is Index+1,
+            check_joint_(T, IndexIncr)
+        ) ; true
+    ).
 
-% substitute(List)
+
+% Utility function for replacing single elements in lists
+substitute(State, Index, NewElement, NewList):-
+    substitute_(State, Index, NewElement, NewList).
+
+substitute_([_|T], 0, NewElement, NewList):-
+    append([NewElement], T, NewList).
+
+substitute_([H|T], Index, NewElement, NewList):-
+    Index_decr is Index-1,
+    substitute_(T, Index_decr, NewElement, NewList_substituted), !,
+    append([H], NewList_substituted, NewList).
+
+check_property_of_agent(Agent, State, Property):-
+    agent_state(Agent, State, AgentState), !,
+    ord_memberchk(Property, AgentState), !.
+
+toggle_property(Agent, State, Property, NewState):-
+    agent(Agent, Id),
+    agent_state(Agent, State, AgentState),
+    (
+        ord_memberchk(Property, AgentState) -> ord_del_element(AgentState, Property, NewAgentState)
+                                            ;  ord_add_element(AgentState, Property, NewAgentState)
+    ),
+    substitute(State, Id, NewAgentState, NewState).
+
+
+precondition(Action, State):-
+    action(Action, _),
+    state(State),
+    precondition_(Action, State).
+
+% A transition function gives a new state
+transitate(State, Joint, NewState):-
+    state(State),
+    joint_action(Joint),
+    check_precondition_(State, Joint),
+    transitate_(State, Joint, NewState),
+    state(NewState).
+
+check_precondition_(_, []).
+check_precondition_(State, [Action|T]):-
+    precondition(Action, State),
+    check_precondition_(State, T).
+

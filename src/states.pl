@@ -15,8 +15,22 @@ prop(isAlive).
 % where each of the lists must be a sorted set.
 %
 % Here are some example, if we follow the semantics of the paper and the Diabetes example
-desperate_hal(State):-
-    State = state([isAlive], [hasInsulin, hasMoney, isAlive]).
+%
+% Both Carla and Hal are poor, the ending won't be good
+poor_both(State):-
+    State = state([isAlive], [hasInsulin, isAlive]).
+
+% Hal is poor, Carla is rich
+poor_hal(State):-
+    State = state([[isAlive], [hasInsulin, hasMoney, isAlive]]).
+
+% Hal has the money but still cannot buy the insulin (he never does!). Carla is poor
+poor_carla(State):-
+    State = state([[hasMoney, isAlive], [hasInsulin, isAlive]]).
+
+% Both Hal and Carla are rich.
+rich_both(State):-
+    State = state([[hasMoney, isAlive], [hasInsulin, hasMoney, isAlive]]).
 
 initial_state(State):-
-    desperate_hal(State).
+    poor_hal(State).
