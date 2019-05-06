@@ -123,10 +123,14 @@ demote(Value, DemotedValue):-
 
 % As in a normal LTS, a path is a sequence of states and transitions,
 % but this time we take the valuations into account.
-path(CurrentState, [CurrentState]):-
-    final_state(CurrentState).
 
 path(CurrentState, [CurrentState, Joint, Values|PathTrail]):-
-    \+ final_state(CurrentState),
     transitate(CurrentState, Joint, NewState, Values),
+    CurrentState \= NewState,
     path(NewState, PathTrail).
+
+path(CurrentState, [CurrentState]):-
+    transitate(CurrentState, _, NewState, _),
+    CurrentState = NewState.
+
+

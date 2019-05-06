@@ -22,6 +22,7 @@ precondition_(buyC, State):-
 
 precondition_(takeH, State):-
     check_property_of_agent("Hal", State, isAlive), !,
+    \+ check_property_of_agent("Hal", State, hasInsulin), !,
     check_property_of_agent("Carla", State, hasInsulin), !.
     
 precondition_(compensateH, State):-
@@ -29,9 +30,10 @@ precondition_(compensateH, State):-
     check_property_of_agent("Hal", State, hasInsulin), !,
     check_property_of_agent("Hal", State, hasMoney), !,
     check_property_of_agent("Carla", State, isAlive), !,
+    \+ 
     (
-        \+ check_property_of_agent("Carla", State, hasInsulin);
-        \+ check_property_of_agent("Carla", State, hasMoney)
+        check_property_of_agent("Carla", State, hasInsulin),
+        check_property_of_agent("Carla", State, hasMoney)
     ).
 
 % transition functions are defined in the following manner:
@@ -81,14 +83,19 @@ transitate_(State, [doNothingH, buyC], NewState, [DemotedFreedomCarla]):-
     toggle_property("Carla", NewStatePrime, hasInsulin, NewState),
     demote(freedomCarla, DemotedFreedomCarla).
 
-transitate_(State, [compensateH, doNothingC], NewState, [DemotedFreedomHal]):-
+transitate_(State, [compensateH, doNothingC], NewState, Valutations):-
     toggle_property("Hal", State, hasMoney, NewStatePrime),
 
     % If Carla lacks of insulin then provide it to her, otherwise she lacks the money
     (
-    \+ check_property_of_agent("Carla", NewStatePrime, hasInsulin) *->
-        toggle_property("Carla", NewStatePrime, hasInsulin, NewState);
-        toggle_property("Carla", NewStatePrime, hasMoney, NewState)
-    ),
-
-    demote(freedomHal, DemotedFreedomHal).
+        \+ check_property_of_agent("Carla", NewStatePrime, hasInsulin) ->
+        (
+            toggle_property("Carla", NewStatePrime, hasInsulin, NewState),
+            demote(freedomHal, DemotedFreedomHal),
+            Valutations = [DemotedFreedomHal]
+        );
+        (
+            toggle_property("Carla", NewStatePrime, hasMoney, NewState),
+            Valutations = []
+        )
+    ).

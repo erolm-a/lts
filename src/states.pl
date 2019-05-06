@@ -34,7 +34,7 @@ rich_both(State):-
 
 initial_state(State):-
     poor_hal(State).
-
+/*
 % It is important to define a final state.
 % For example, Hal and Carla could iterate (doNothing, doNothing) once they reach a leaf.
 % final states have the following semantics:
@@ -55,4 +55,4 @@ final_state(State):-
 both_alive(State):-
     check_property_of_agent("Hal", State, isAlive),
     check_property_of_agent("Carla", State, isAlive).
-
+*/
