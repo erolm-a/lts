@@ -20,7 +20,6 @@
 
 
 % DO NOT MODIFY THIS BY GROUNDING TERMS!!!
-% The files agents.pl, states.pl and actions.pl are made specifically for that.
 
 use(library(ordsets)).
 
@@ -53,7 +52,6 @@ agent_state(Agent, State, AgentState):-
 % only one action at a time.
 %
 joint_action(Actions):-
-    is_list(Actions),
     no_agents(N),
     length(Actions, N),
     check_joint_(Actions, 0).
@@ -62,7 +60,7 @@ check_joint_([H|T], Index):-
     agent(Agent, Index),
     action(H, Agent),
     ( length(T, N),
-        N > 0 *-> (
+        N > 0 -> (
             IndexIncr is Index+1,
             check_joint_(T, IndexIncr)
         ) ; true
@@ -119,6 +117,16 @@ promote(Value, PromotedValue):-
     value(Value),
     atom_concat(Value, +, PromotedValue).
 
-demote(Value, PromotedValue):-
+demote(Value, DemotedValue):-
     value(Value),
-    atom_concat(Value, -, PromotedValue).
+    atom_concat(Value, -, DemotedValue).
+
+% As in a normal LTS, a path is a sequence of states and transitions,
+% but this time we take the valuations into account.
+path(CurrentState, [CurrentState]):-
+    final_state(CurrentState).
+
+path(CurrentState, [CurrentState, Joint, Values|PathTrail]):-
+    \+ final_state(CurrentState),
+    transitate(CurrentState, Joint, NewState, Values),
+    path(NewState, PathTrail).

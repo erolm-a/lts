@@ -17,6 +17,7 @@ precondition_(doNothingH, _).
 
 precondition_(buyC, State):-
     check_property_of_agent("Carla", State, isAlive), !,
+    \+ check_property_of_agent("Carla", State, hasInsulin), !,
     check_property_of_agent("Carla", State, hasMoney), !.
 
 precondition_(takeH, State):-
@@ -25,6 +26,7 @@ precondition_(takeH, State):-
     
 precondition_(compensateH, State):-
     check_property_of_agent("Hal", State, isAlive), !,
+    check_property_of_agent("Hal", State, hasInsulin), !,
     check_property_of_agent("Hal", State, hasMoney), !,
     check_property_of_agent("Carla", State, isAlive), !,
     (
@@ -48,7 +50,7 @@ transitate_(State, [doNothingH, doNothingC], NewState, Valutations):-
             (
                 ord_del_element(HalState, isAlive, HalStatePrime),
                 demote(lifeHal, DemotedHalLife),
-                append(ValutationTemp, DemotedHalLife, ValuationTemp2)
+                append(ValutationTemp, [DemotedHalLife], ValutationTemp2)
             ) ; (
                 HalStatePrime = HalState,
                 ValutationTemp2 = ValutationTemp
@@ -59,10 +61,10 @@ transitate_(State, [doNothingH, doNothingC], NewState, Valutations):-
             (
                 ord_del_element(CarlaState, isAlive, CarlaStatePrime),
                 demote(lifeCarla, DemotedCarlaLife),
-                append(ValutationTemp2, DemotedCarlaLife, Valutations)
+                append(ValutationTemp2, [DemotedCarlaLife], Valutations)
             ); (
                 CarlaStatePrime = CarlaState,
-                Valutations = ValutationsTemp2
+                Valutations = ValutationTemp2
             )
     ),
     agent("Hal", IdHal),
