@@ -6,6 +6,6 @@
 
 :- [aats].
 :- [agents].
-:- [states].
+:- [propositions].
 :- [actions].
 :- [values].
