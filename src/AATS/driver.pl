@@ -9,3 +9,4 @@
 :- [propositions].
 :- [actions].
 :- [values].
+:- [serialize].

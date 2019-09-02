@@ -80,6 +80,15 @@ promote(Value):-
 demote(Value):-
     value(Value).
 
+%!  values(+List) is det
+%   True if List is made only of promotions and demotions, i.e. instantiations of promote or demote 
+values(List):-
+    maplist(either_, List).
+
+either_(Value):-
+    Value = promote(_) ; Value = demote(_).
+    
+
 
 % transitate(?State:List, ?Joint:List, -NewState:List, -Valuations:List) is nondet
 %

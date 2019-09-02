@@ -1,0 +1,4 @@
+Given the power AIs own today, preventing them from wrongdoing, intentionally or not, is fundamental to guarantee a pacific evolution for the human society.
+Questions like 'can AIs be regarded morally responsible?' and 'how can we ensure - proactively or not - that AIs are acting morally?' still constitute cardinal objectives for many philophers and researchers.
+Some authors (Bench-Capon, 2002; Dung, 1995; Dung 2006; Floridi and Sanders, 2004) tried multiple approaches to settle a scientific, mathematical background for such questions and develop tools that could be implemented and run by computers.
+Unfortunately some of those authors glossed over some practical concerns such as the generality of their approaches. We try to re-implement in Prolog those tools and claim part of them are not practical either because they involve NP-hard problems as subroutines or because the findings of those tools mainly mirror hardcoded results rather than being truly original.
