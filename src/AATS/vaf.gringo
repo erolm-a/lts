@@ -1,0 +1,77 @@
+%*
+ Implementation of a Value-Based Argumentation Framework in clasp.
+
+ Based on the paper "Value-based argumentation frameworks", T. Bench-Capon & P. Dunne, 2002.
+
+ @author Francesco Perrone
+ @author Enrico Trombetta
+ @license GPLv3
+
+ High level description:
+
+ A VAF is a tuple of 5 elements:
+
+ - a set of arguments AR
+ - a set of attacking relationship attacks: attack is a subset of AR x AR
+ - a set of values V
+ - a valuation function val/2
+ - an ordering function valpref/2: valpref(A, B) is true if val(A) is "greater" than the value of B. The paper says this function should be at least asymmetric, irreflexive, transitive.
+ 
+
+ Do not modify this by grounding terms! Please modify vaf_ground.gringo to provide suitable arguments, values and a preference function.
+
+*%
+
+
+% some constants
+arguments_no(N):- N = #count{A: argument(A)}.
+
+% define sets
+{ in(A, S) : argument(A), S = 1..N, 1 <= S, S <= N } = N:- arguments_no(N).
+:- in(A, S), in(A, S'), S != S'.
+
+% force them to be sequential
+:- not in(_, 1).
+:- in(_, N), not in(_, N+1), in(_, M), M > N.
+
+cardinality(S, N):- in(_, S), N = #count{A: in(A, S)}.
+
+% An argument A defeats B if A attacks B and the value of B does is not greater than A.
+defeats(A, B):- attacks(A, B), not valpref(B, A).
+
+% An argument A is V-acceptable within a set S if, for each argument B attacking A, there is an argument C inside S defeating B.
+
+acceptable(A, S) :- argument(A), in(C, S), defeats(C, B): defeats(B, A).
+
+% A set S is V-Conflict-free if for each pair of x, y in the AR there is no defeat.
+% The original paper stated: ¬attacks(x,y) OR valpref(val(y),val(x)), but this is
+% equivalent to ¬defeat.
+
+conflict_free(S):- in(_, S), {defeats(A, B): in(A, S), in(B, S) } = 0.
+
+% A conflict-free set S is admissible if each element of S is acceptable within S.
+admissible(S):- conflict_free(S), acceptable(A, S): in(A, S).
+
+% A preferred extension is a maximal admissible set (credulous semantics).
+% Here it is defined this way: there is no other argument outside S that is acceptable by S.
+
+{preferred_extension(S); not_preferred_extension(S)} = 1:- admissible(S).
+
+:- preferred_extension(S), { acceptable(A, S) : not in(A, S)} > 0.
+:- not_preferred_extension(S), { acceptable(A, S) : not in(A, S) } = 0.
+
+% A stable extension S is a preferred extension if it attacks every element outside S
+
+% attacked_by_set(Argument, Set):- in(B, Set), attacks(B, Argument).
+{stable_extension(S); not_stable_extension(S)} = 1 :- preferred_extension(S).
+
+:- stable_extension(S), {defeats(Inside, Outside): in(Inside, S), in(Outside, S'), S != S'} = 0.
+:- not_stable_extension(S), {defeats(Inside, Outside): in(Inside, S), in(Outside, S'), S != S'} > 0.
+
+#show in/2.
+#show conflict_free/1.
+%#show acceptable/2.
+#show admissible/1.
+#show preferred_extension/1.
+#show stable_extension/1.
+% #show attacks/2.

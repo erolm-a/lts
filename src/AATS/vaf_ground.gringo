@@ -1,0 +1,15 @@
+argument(a).
+argument(b).
+argument(c).
+argument(d).
+
+value(a, 1).
+value(b, 1).
+value(c, 1).
+value(d, 1).
+
+attacks(b,a).
+attacks(c,b).
+
+% valpref/2 must be an ordering relationship. Ensure it is asymmetric, irriflexive and transitive
+valpref(A, B):- A != B, value(A, Va), value(B, Vb), Va > Vb.
